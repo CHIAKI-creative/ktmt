@@ -1,0 +1,62 @@
+/* Tùy chỉnh body */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Giữ nội dung ở trên cùng */
+    background-color: #f8f9fa !important; /* Màu nền nhẹ nhàng */
+}
+
+.container {
+    max-width: 900px; /* Giới hạn chiều rộng trên màn hình lớn */
+}
+
+/* Tùy chỉnh Card cho giao diện chính */
+.card {
+    border: none;
+    border-radius: 1rem !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Tùy chỉnh cho các nút đáp án */
+.quiz-option-btn {
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.75rem;
+    line-height: 1.5;
+    white-space: normal; /* Đảm bảo chữ xuống dòng */
+    word-wrap: break-word; /* Hỗ trợ ngắt từ dài */
+}
+
+/* Hiệu ứng hover và focus cho nút đáp án */
+.quiz-option-btn:hover:not(:disabled) {
+    background-color: #e9ecef; /* Màu nền nhẹ khi hover */
+    border-color: #0d6efd;
+}
+
+/* Khi một nút đáp án đã được tô màu (đúng/sai) */
+.btn-success, .btn-danger {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Tùy chỉnh cho bảng kết quả chi tiết */
+.table th, .table td {
+    vertical-align: middle;
+}
+
+/* Responsive cho điện thoại */
+@media (max-width: 767.98px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    /* Giảm kích thước chữ tiêu đề trên điện thoại */
+    .display-5 {
+        font-size: 1.75rem;
+    }
+
+    .lead {
+        font-size: 1rem;
+    }
+}

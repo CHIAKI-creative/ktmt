@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ứng Dụng Kiểm Tra Trắc Nghiệm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-primary">📝 Ứng Dụng Kiểm Tra Trắc Nghiệm</h1>
+            <p class="lead text-muted">Kiểm tra kiến thức của bạn một cách nhanh chóng và chính xác.</p>
+        </header>
+
+        <div id="setup-view" class="card shadow-lg p-4 mb-5 bg-white rounded-3">
+            <div class="card-body">
+                <h2 class="card-title text-center text-secondary mb-4">Thiết Lập Bài Kiểm Tra</h2>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                            <label for="num-questions-input" class="form-label fw-bold">Nhập số câu hỏi bạn muốn làm:</label>
+                            <input type="number" id="num-questions-input" class="form-control form-control-lg mb-3" min="1" required placeholder="Ví dụ: 5">
+
+                            <div id="question-limit-feedback" class="text-danger mb-3 d-none"></div>
+
+                            <button id="start-quiz-btn" class="btn btn-primary btn-lg w-100 mt-3" disabled>Bắt Đầu Kiểm Tra</button>
+                            <small class="text-muted d-block mt-2 text-center" id="total-questions-info"></small> 
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-view" class="card shadow-lg p-4 mb-5 bg-white rounded-3 d-none">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="card-title text-primary mb-0">Câu Hỏi <span id="current-question-number"></span>/<span id="total-questions-display"></span></h2>
+                    <span id="progress-text" class="fw-bold text-muted">0%</span>
+                </div>
+                
+                <div class="progress mb-4" role="progressbar" aria-label="Tiến trình" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-info" style="width: 0%" id="quiz-progress-bar"></div>
+                </div>
+
+                <h3 class="mb-4" id="question-text"></h3>
+                
+                <div id="answer-options" class="d-grid gap-3">
+                    </div>
+
+                <div id="feedback" class="mt-4 p-3 rounded-3 text-center d-none"></div>
+
+                <button id="next-question-btn" class="btn btn-success btn-lg w-100 mt-4" disabled>Tiếp Tục ➡️</button>
+            </div>
+        </div>
+
+        <div id="result-view" class="card shadow-lg p-4 mb-5 bg-white rounded-3 d-none">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">🎉 Kết Quả Bài Kiểm Tra 🎉</h2>
+                <div class="alert alert-info text-center" role="alert">
+                    Bạn đã trả lời đúng **<span id="correct-answers-count"></span>** trên tổng số **<span id="total-questions-result"></span>** câu hỏi.
+                    <br>
+                    Điểm số của bạn là: <strong class="display-6" id="final-score"></strong>
+                </div>
+
+                <h3 class="mt-4 mb-3 text-secondary">Bảng Tổng Hợp Chi Tiết</h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle" id="result-table">
+                        <thead>
+                            <tr class="table-primary">
+                                <th scope="col"># Câu</th>
+                                <th scope="col">Câu Hỏi</th>
+                                <th scope="col">Đáp Án Của Bạn</th>
+                                <th scope="col">Đáp Án Đúng</th>
+                                <th scope="col">Kết Quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+
+                <button id="restart-quiz-btn" class="btn btn-warning btn-lg w-100 mt-4">
+                    <i class="bi bi-arrow-counterclockwise"></i> Trở Lại Trang Chủ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+   <script>
+        // MÃ JAVASCRIPT ĐƯỢC ĐẶT TRỰC TIẾP Ở ĐÂY HOẶC TRONG FILE SCRIPT.JS
+        // Tôi sẽ đặt mã JS ngay dưới đây để bạn tiện copy-paste và chạy thử.
+        
+
+        let selectedQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = []; // Lưu trữ {question: "", yourAnswer: "", correctAnswer: "", isCorrect: bool}
+        let totalQuestionsToAsk = 0;
+        let answeredCurrentQuestion = false;
+
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+
+        // --- DOM Elements ---
+        const setupView = $('#setup-view');
+        const quizView = $('#quiz-view');
+        const resultView = $('#result-view');
+        const numQuestionsInput = $('#num-questions-input'); // Thay thế select bằng input
+        const questionLimitFeedback = $('#question-limit-feedback'); // Thêm feedback lỗi
+        const startQuizBtn = $('#start-quiz-btn');
+        const totalQuestionsInfo = $('#total-questions-info');
+        const currentQuestionNumberDisplay = $('#current-question-number');
+        const totalQuestionsDisplay = $('#total-questions-display');
+        const questionTextDisplay = $('#question-text');
+        const answerOptionsContainer = $('#answer-options');
+        const feedbackDisplay = $('#feedback');
+        const nextQuestionBtn = $('#next-question-btn');
+        const quizProgressBar = $('#quiz-progress-bar');
+        const progressText = $('#progress-text');
+        const restartQuizBtn = $('#restart-quiz-btn');
+
+        // --- Hàm Tiện Ích ---
+
+        // Trộn mảng (Fisher-Yates)
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // --- Giao Diện 1: Thiết Lập ---
+
+        // --- Giao Diện 1: Thiết Lập ---
+
+        function setupInitialView() {
+            // Lấy tổng số câu hỏi có sẵn
+            const totalAvailable = quizData.length;
+            totalQuestionsInfo.textContent = `(Có tổng cộng ${totalAvailable} câu hỏi sẵn có)`;
+
+            // Đặt giá trị max cho input
+            numQuestionsInput.max = totalAvailable;
+
+            // Kích hoạt nút Bắt Đầu khi có input hợp lệ
+            numQuestionsInput.addEventListener('input', () => {
+                const value = parseInt(numQuestionsInput.value);
+                
+                // Kiểm tra và hiển thị feedback
+                if (isNaN(value) || value <= 0) {
+                    startQuizBtn.disabled = true;
+                    questionLimitFeedback.classList.add('d-none');
+                    totalQuestionsToAsk = 0;
+                } else if (value > totalAvailable) {
+                    startQuizBtn.disabled = true;
+                    questionLimitFeedback.textContent = `⚠️ Chỉ có tối đa ${totalAvailable} câu hỏi.`;
+                    questionLimitFeedback.classList.remove('d-none');
+                    totalQuestionsToAsk = 0;
+                } else {
+                    // Hợp lệ
+                    startQuizBtn.disabled = false;
+                    questionLimitFeedback.classList.add('d-none');
+                    totalQuestionsToAsk = value; // Gán số câu hỏi người dùng nhập
+                }
+            });
+
+            startQuizBtn.addEventListener('click', startQuiz);
+            restartQuizBtn.addEventListener('click', resetQuiz);
+
+            // Đảm bảo chỉ hiển thị Giao diện Thiết Lập
+            showView('setup');
+        }
+
+        // ... (các hàm khác giữ nguyên)
+
+        function resetQuiz() {
+            // Quay lại trạng thái ban đầu
+            showView('setup');
+            numQuestionsInput.value = ""; // Xóa giá trị input
+            startQuizBtn.disabled = true;
+            questionLimitFeedback.classList.add('d-none');
+        }
+
+        // --- Khởi tạo ứng dụng ---
+        document.addEventListener('DOMContentLoaded', setupInitialView);
+
+        // --- Logic Chính: Bắt Đầu, Hiển Thị, Chuyển Câu ---
+
+        function startQuiz() {
+            // 1. Reset trạng thái
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            answeredCurrentQuestion = false;
+
+            // 2. Chọn và xáo trộn câu hỏi
+            // Lấy ngẫu nhiên 'totalQuestionsToAsk' câu hỏi từ quizData
+            let shuffledData = shuffleArray([...quizData]);
+            selectedQuestions = shuffledData.slice(0, totalQuestionsToAsk);
+
+            // 3. Cập nhật thông tin hiển thị
+            totalQuestionsDisplay.textContent = totalQuestionsToAsk;
+            
+            // 4. Chuyển sang giao diện Quiz
+            showView('quiz');
+            loadQuestion(currentQuestionIndex);
+        }
+
+        function loadQuestion(index) {
+            if (index >= selectedQuestions.length) {
+                // Đã hết câu hỏi
+                showResultView();
+                return;
+            }
+
+            // Reset trạng thái câu hỏi hiện tại
+            answeredCurrentQuestion = false;
+            nextQuestionBtn.disabled = true;
+            feedbackDisplay.classList.add('d-none');
+            feedbackDisplay.innerHTML = '';
+            answerOptionsContainer.innerHTML = ''; // Xóa đáp án cũ
+
+            const currentQ = selectedQuestions[index];
+
+            // Cập nhật chỉ số câu hỏi và tiến trình
+            currentQuestionNumberDisplay.textContent = index + 1;
+            updateProgressBar(index);
+
+            // Hiển thị câu hỏi
+            questionTextDisplay.textContent = currentQ.question;
+
+            // Hiển thị các đáp án
+            // Trộn đáp án để tăng tính ngẫu nhiên
+            const shuffledOptions = shuffleArray([...currentQ.options]); 
+            const optionLabels = ["A", "B", "C", "D"];
+
+            shuffledOptions.forEach((option, i) => {
+                const optionLabel = optionLabels[i];
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-outline-secondary text-start p-3 fw-bold quiz-option-btn';
+                button.dataset.answer = option;
+                button.innerHTML = `<span class="me-3 badge bg-secondary">${optionLabel}</span> ${option}`;
+                button.addEventListener('click', handleAnswerSelection);
+                answerOptionsContainer.appendChild(button);
+            });
+        }
+
+        function updateProgressBar(index) {
+            const percentage = (index / totalQuestionsToAsk) * 100;
+            quizProgressBar.style.width = `${percentage}%`;
+            quizProgressBar.setAttribute('aria-valuenow', percentage);
+            progressText.textContent = `${Math.round(percentage)}%`;
+
+            // Cập nhật thanh tiến trình cho câu hỏi cuối cùng sau khi trả lời
+            if (index === totalQuestionsToAsk) {
+                quizProgressBar.style.width = '100%';
+                quizProgressBar.setAttribute('aria-valuenow', 100);
+                progressText.textContent = '100%';
+            }
+        }
+
+        function handleAnswerSelection(event) {
+            if (answeredCurrentQuestion) return; // Ngăn chặn chọn lại
+
+            const selectedButton = event.currentTarget;
+            const selectedAnswer = selectedButton.dataset.answer;
+            const currentQ = selectedQuestions[currentQuestionIndex];
+            const correctAnswer = currentQ.answer;
+
+            answeredCurrentQuestion = true;
+            nextQuestionBtn.disabled = false; // Bật nút Tiếp Tục
+
+            let isCorrect = (selectedAnswer === correctAnswer);
+            
+            // 1. Lưu kết quả
+            userAnswers.push({
+                question: currentQ.question,
+                yourAnswer: selectedAnswer,
+                correctAnswer: correctAnswer,
+                isCorrect: isCorrect
+            });
+
+            // 2. Phản hồi và tô màu đáp án
+            const allOptionButtons = $$('.quiz-option-btn');
+            allOptionButtons.forEach(btn => {
+                btn.disabled = true; // Vô hiệu hóa tất cả các nút
+                const answer = btn.dataset.answer;
+
+                if (answer === correctAnswer) {
+                    // Tô xanh đáp án đúng
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-success', 'text-white');
+                    btn.querySelector('.badge').classList.remove('bg-secondary');
+                    btn.querySelector('.badge').classList.add('bg-light', 'text-success');
+                }
+                
+                if (!isCorrect && answer === selectedAnswer) {
+                    // Tô đỏ đáp án sai (nếu chọn sai)
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-danger', 'text-white');
+                    btn.querySelector('.badge').classList.remove('bg-secondary');
+                    btn.querySelector('.badge').classList.add('bg-light', 'text-danger');
+                }
+            });
+
+            // 3. Hiển thị feedback
+            feedbackDisplay.classList.remove('d-none');
+            if (isCorrect) {
+                score++;
+                feedbackDisplay.className = 'mt-4 p-3 rounded-3 text-center alert alert-success fw-bold';
+                feedbackDisplay.innerHTML = '✅ Chính xác! Tuyệt vời!';
+            } else {
+                feedbackDisplay.className = 'mt-4 p-3 rounded-3 text-center alert alert-danger fw-bold';
+                feedbackDisplay.innerHTML = `❌ Sai rồi. Đáp án đúng là: <strong>${correctAnswer}</strong>.`;
+            }
+
+            // 4. Cập nhật chữ nút Tiếp Tục
+            if (currentQuestionIndex === totalQuestionsToAsk - 1) {
+                nextQuestionBtn.textContent = 'Xem Kết Quả Tổng Hợp 🏆';
+            } else {
+                nextQuestionBtn.textContent = 'Tiếp Tục ➡️';
+            }
+        }
+
+        nextQuestionBtn.addEventListener('click', () => {
+            if (!answeredCurrentQuestion) return;
+            currentQuestionIndex++;
+            loadQuestion(currentQuestionIndex);
+        });
+
+        // --- Giao Diện 3: Kết Quả ---
+
+        function showResultView() {
+            showView('result');
+            
+            // Cập nhật thanh tiến trình lần cuối
+            updateProgressBar(totalQuestionsToAsk);
+
+            $('#correct-answers-count').textContent = score;
+            $('#total-questions-result').textContent = totalQuestionsToAsk;
+            $('#final-score').textContent = `${score}/${totalQuestionsToAsk}`;
+
+            const resultTableBody = $('#result-table tbody');
+            resultTableBody.innerHTML = ''; // Xóa kết quả cũ
+
+            userAnswers.forEach((item, index) => {
+                const row = resultTableBody.insertRow();
+                const resultClass = item.isCorrect ? 'table-success' : 'table-danger';
+                row.className = resultClass;
+
+                row.insertCell().textContent = index + 1; // # Câu
+                row.insertCell().textContent = item.question; // Câu Hỏi
+                
+                // Đáp Án Của Bạn
+                const yourAnswerCell = row.insertCell();
+                yourAnswerCell.innerHTML = item.isCorrect 
+                    ? `<strong>${item.yourAnswer}</strong>`
+                    : `❌ <strong class="text-danger">${item.yourAnswer}</strong>`;
+
+                // Đáp Án Đúng
+                row.insertCell().innerHTML = `<strong>${item.correctAnswer}</strong>`;
+
+                // Kết Quả
+                row.insertCell().innerHTML = item.isCorrect ? '✅ Đúng' : '❌ Sai';
+            });
+        }
+        
+        // --- Chuyển Đổi Giao Diện ---
+
+        function showView(view) {
+            setupView.classList.add('d-none');
+            quizView.classList.add('d-none');
+            resultView.classList.add('d-none');
+
+            if (view === 'setup') {
+                setupView.classList.remove('d-none');
+            } else if (view === 'quiz') {
+                quizView.classList.remove('d-none');
+            } else if (view === 'result') {
+                resultView.classList.remove('d-none');
+            }
+        }
+        
+        function resetQuiz() {
+            // Quay lại trạng thái ban đầu
+            showView('setup');
+            numQuestionsSelect.value = "";
+            startQuizBtn.disabled = true;
+        }
+
+
+        // --- Khởi tạo ứng dụng ---
+        document.addEventListener('DOMContentLoaded', setupInitialView);
+
+    </script>
+</body>
+</html>
