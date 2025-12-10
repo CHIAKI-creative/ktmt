@@ -400,7 +400,7 @@ const quizData = [
     {
         question: "Bus nào trong máy tính có nhiệm vụ là đường truyền dẫn giữa các khối của bộ vi xử lý?",
         options: ["Bus VGA", "Bus bộ vi xử lý", "Bus ngoại vi", "Bus hệ thống"],
-        answer: "Bus trong bộ vi xử lý"
+        answer: "Bus bộ vi xử lý"
     },
     {
         question: "Bus nào trong máy tính có nhiệm vụ kết nối bộ vi xử lý với bộ nhớ chính và bộ nhớ Cache?",
